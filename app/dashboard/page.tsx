@@ -1,13 +1,15 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation"; // Import useRouter
 import axios from "axios";
 import { io, Socket } from "socket.io-client";
-import { Play, ShieldCheck, Clock, MapPin, Loader2, SignalHigh } from "lucide-react";
+import { Play, ShieldCheck, Clock, Loader2, SignalHigh, Lock } from "lucide-react"; // Added Lock icon
 import toast from "react-hot-toast";
 
 export default function Dashboard() {
     const { data: session } = useSession();
+    const router = useRouter(); // Initialize router
     const [isWalking, setIsWalking] = useState(false);
     const [isStarting, setIsStarting] = useState(false);
     const [duration, setDuration] = useState(15);
@@ -18,13 +20,10 @@ export default function Dashboard() {
     const socketRef = useRef<Socket | null>(null);
     const watchIdRef = useRef<number | null>(null);
 
-    console.log("Session: ",session)
-
-    // Precise GPS Options
     const geoOptions = {
-        enableHighAccuracy: true, // Forces GPS Hardware usage
-        timeout: 15000,           // Wait up to 15 seconds for a lock
-        maximumAge: 0             // Always get fresh data
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0
     };
 
     useEffect(() => {
@@ -35,12 +34,19 @@ export default function Dashboard() {
         };
     }, []);
 
+    // --- CHANGE 1: THE LOGIC GATE ---
     const startWalk = async () => {
+        // Check if session exists
+        if (!session) {
+            toast.error("Authentication required! Redirecting to login...");
+            setTimeout(() => router.push("/login"), 1500);
+            return;
+        }
+
         if (isStarting) return;
         setIsStarting(true);
         const loadToast = toast.loading("Acquiring precise GPS lock...");
 
-        // FIX: Using high accuracy options for the INITIAL location fetch
         navigator.geolocation.getCurrentPosition(
             async (pos) => {
                 try {
@@ -74,7 +80,7 @@ export default function Dashboard() {
                 setIsStarting(false);
                 toast.error("GPS Timeout. Please ensure location is ON.", { id: loadToast });
             },
-            geoOptions // Mobile precise options passed here
+            geoOptions
         );
     };
 
@@ -84,9 +90,6 @@ export default function Dashboard() {
                 (pos) => {
                     const { latitude, longitude, accuracy } = pos.coords;
                     setCurrentAccuracy(accuracy);
-
-                    // Logic: Accept any location under 150m for safety. 
-                    // Higher numbers (like 150) are safer for the start of a walk.
                     if (accuracy < 150) {
                         socketRef.current?.emit("update-location", {
                             sessionId: sId,
@@ -156,13 +159,30 @@ export default function Dashboard() {
                         </div>
                     </div>
 
+                    {/* --- CHANGE 2: THE UI FEEDBACK --- */}
                     <button
                         onClick={startWalk}
                         disabled={isStarting}
-                        className="w-full bg-rose-600 text-white py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 hover:bg-rose-700 active:scale-95 transition-all shadow-xl shadow-rose-200 disabled:bg-slate-300"
+                        className={`w-full py-5 rounded-2xl font-bold text-lg flex items-center justify-center gap-3 transition-all shadow-xl active:scale-95 disabled:bg-slate-300 ${
+                            !session 
+                            ? "bg-slate-800 text-white hover:bg-slate-900" 
+                            : "bg-rose-600 text-white hover:bg-rose-700 shadow-rose-200"
+                        }`}
                     >
-                        {isStarting ? <Loader2 className="animate-spin" /> : <Play fill="white" size={20} />}
-                        {isStarting ? "Acquiring GPS..." : "Start Protection"}
+                        {isStarting ? (
+                            <Loader2 className="animate-spin" />
+                        ) : !session ? (
+                            <Lock size={20} />
+                        ) : (
+                            <Play fill="white" size={20} />
+                        )}
+                        
+                        {isStarting 
+                            ? "Acquiring GPS..." 
+                            : !session 
+                                ? "Login to Start" 
+                                : "Start Protection"
+                        }
                     </button>
                 </div>
             ) : (

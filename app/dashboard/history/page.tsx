@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useSession } from "next-auth/react";
-import { Calendar, Clock, ShieldCheck, AlertTriangle, ChevronRight } from "lucide-react";
+import { useRouter } from "next/navigation"; // Correct import for App Router
+import { Calendar, Clock, ShieldCheck, AlertTriangle, ChevronRight, Lock, ArrowRight } from "lucide-react";
 import { format } from "date-fns";
 
 type Walk = {
@@ -19,15 +20,17 @@ type Walk = {
 };
 
 export default function HistoryPage() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession(); // Destructure status
+  const router = useRouter(); // Initialize router
   const [history, setHistory] = useState<Walk[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchHistory = async () => {
-      if (!session?.accessToken) {
-        setLoading(false);
+      // Only fetch if session is authenticated
+      if (status !== "authenticated" || !session?.accessToken) {
+        if (status === "unauthenticated") setLoading(false);
         return;
       }
 
@@ -49,7 +52,7 @@ export default function HistoryPage() {
     };
 
     fetchHistory();
-  }, [session]);
+  }, [session, status]);
 
   const formatDate = (when?: string | number) => {
     if (!when) return "—";
@@ -98,50 +101,46 @@ export default function HistoryPage() {
     }
   };
 
-  // Loading skeleton (mobile-first)
-  if (loading) {
+  // --- NEW: Loading State ---
+  if (status === "loading" || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100 py-15 px-4 ">
-        <div className="max-w-3xl mx-auto ">
-          <div className="relative mb-8 mt-14">
-            <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-rose-600 via-rose-500 to-amber-400 ">
-              Your Journey Logs
-            </h1>
-            <p className="mt-2 text-sm text-slate-500">All your recorded walks and events. Tap a log to view details.</p>
-          </div>
-
-          <div className="space-y-4 animate-pulse">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex gap-4 items-center bg-white rounded-2xl p-4 shadow-md">
-                <div className="h-14 w-14 rounded-xl bg-slate-200" />
-                <div className="flex-1">
-                  <div className="h-4 w-1/2 bg-slate-200 rounded mb-2" />
-                  <div className="h-3 w-1/3 bg-slate-200 rounded" />
-                </div>
-                <div className="h-8 w-8 bg-slate-200 rounded" />
-              </div>
-            ))}
-          </div>
+      <div className="min-h-screen bg-slate-50 py-15 px-4 flex items-center justify-center">
+        <div className="animate-pulse flex flex-col items-center">
+           <div className="h-12 w-12 rounded-full border-4 border-rose-600 border-t-transparent animate-spin mb-4"></div>
+           <p className="text-slate-500 font-medium">Loading your logs...</p>
         </div>
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen bg-gray-900 py-20 px-4">
-      <div className="max-w-4xl mx-auto relative">
-        {/* Decorative big faint background title */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute left-1/2 transform -translate-x-1/2 -top-10 text-5xl sm:text-7xl font-extrabold tracking-tight text-slate-900 opacity-5 select-none"
-        >
-          Your Journey Logs
+  // --- NEW: Access Denied State ---
+  if (status === "unauthenticated") {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center bg-slate-50">
+        <div className="w-24 h-24 bg-white rounded-3xl shadow-xl flex items-center justify-center mb-8">
+          <Lock className="text-rose-500" size={44} />
         </div>
+        <h2 className="text-3xl font-black text-slate-900 mb-4">History Locked</h2>
+        <p className="text-slate-500 max-w-sm mb-10 leading-relaxed">
+          To protect your privacy, walk history is only visible to verified users. Please sign in to view your logs.
+        </p>
+        <button
+          onClick={() => router.push("/login")}
+          className="flex items-center gap-3 bg-rose-600 text-white px-10 py-4 rounded-2xl font-bold hover:bg-rose-700 transition-all shadow-xl shadow-rose-200"
+        >
+          Login to Continue <ArrowRight size={20} />
+        </button>
+      </div>
+    );
+  }
 
-        {/* Header */}
+  // --- Authorized Content ---
+  return (
+    <div className="min-h-screen bg-gray-50 py-20 px-4">
+      <div className="max-w-4xl mx-auto relative">
         <header className="relative mb-8">
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-            <span className="bg-linear-to-r from-rose-600 via-rose-500 to-amber-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-rose-600 via-rose-500 to-amber-400 bg-clip-text text-transparent">
               Your Journey Logs
             </span>
           </h1>
@@ -157,13 +156,13 @@ export default function HistoryPage() {
         )}
 
         {history.length === 0 ? (
-          <div className="mt-8 text-center">
-            <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-rose-50 text-rose-600 mb-4 shadow">
+          <div className="mt-8 text-center bg-white p-12 rounded-[2.5rem] shadow-sm border border-slate-100">
+            <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-rose-50 text-rose-600 mb-4">
               <ShieldCheck size={28} />
             </div>
             <h3 className="text-lg font-semibold text-slate-800">No walks recorded yet</h3>
             <p className="mt-2 text-sm text-slate-500">
-              Start a safe walk to create your first log — your history will appear here.
+              Start a safe walk to create your first log.
             </p>
           </div>
         ) : (
@@ -180,99 +179,37 @@ export default function HistoryPage() {
                   ? "Walk in progress"
                   : "Walk";
 
-              // Determine card theming
-              const cardBg =
-                walk.status === "DANGER"
-                  ? "bg-gradient-to-r from-rose-300 to-rose-400"
-                  : walk.status === "SAFE"
-                  ? "bg-gradient-to-r from-emerald-300 to-emerald-400"
-                  : "bg-gradient-to-r from-sky-50/60 to-sky-50/40";
-
-              const iconWrapper =
-                walk.status === "DANGER"
-                  ? "bg-rose-100 text-rose-600"
-                  : walk.status === "SAFE"
-                  ? "bg-emerald-100 text-emerald-700"
-                  : "bg-amber-100 text-amber-700";
+              const cardBg = "bg-white"; // Simplified for clean look
 
               return (
                 <article
                   key={walk.id}
-                  className={`group relative overflow-hidden rounded-2xl p-4 sm:p-5 shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5 ${cardBg} border border-white/60`}
-                  aria-labelledby={`walk-${walk.id}`}
+                  className={`group relative overflow-hidden rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-100 hover:border-rose-200 transition-all ${cardBg}`}
                 >
                   <div className="flex items-start gap-4">
-                    {/* Icon */}
-                    <div
-                      className={`flex-shrink-0 h-14 w-14 rounded-lg flex items-center justify-center ${iconWrapper} shadow-sm`}
-                      aria-hidden
-                    >
+                    <div className="flex-shrink-0 h-14 w-14 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400">
                       {walk.status === "SAFE" ? (
-                        <ShieldCheck size={20} />
+                        <ShieldCheck size={24} className="text-emerald-500" />
                       ) : walk.status === "DANGER" ? (
-                        <AlertTriangle size={20} />
+                        <AlertTriangle size={24} className="text-rose-500" />
                       ) : (
-                        <Clock size={20} />
+                        <Clock size={24} className="text-amber-500" />
                       )}
                     </div>
 
-                    {/* Content */}
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p id={`walk-${walk.id}`} className="text-xs sm:text-sm text-gray-900 flex items-center gap-2 truncate">
-                            <Calendar size={14} /> <span>{date}</span>
-                          </p>
-
-                          <h3 className="mt-1 text-base sm:text-lg font-semibold text-slate-900 truncate">
-                            {title}
-                          </h3>
-
-                          <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-800">
-                            <span className="inline-flex items-center gap-1">
-                              <Clock size={12} /> {time}
-                            </span>
-
-                            {typeof walk.durationMinutes === "number" && (
-                              <span className="inline-flex items-center gap-1">• {walk.durationMinutes} min</span>
-                            )}
-
-                            {typeof walk.accuracy === "number" && (
-                              <span className="inline-flex items-center gap-1">• acc {Math.round(walk.accuracy)} m</span>
-                            )}
-
-                            {walk.startLat != null && walk.startLon != null && (
-                              <span className="inline-flex items-center gap-1 truncate">• <span className="font-mono">{`${walk.startLat.toFixed(4)}, ${walk.startLon.toFixed(4)}`}</span></span>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Badge for larger screens */}
-                        <div className="hidden sm:flex sm:items-center sm:gap-2 sm:ml-3">
-                          {statusBadge(walk.status)}
-                        </div>
-                      </div>
-
-                      {/* Footer row for small screens */}
-                      <div className="mt-3 sm:hidden flex items-center justify-between gap-2">
-                        <div>{statusBadge(walk.status)}</div>
-                        <div className="text-xs text-slate-500">Tap for details</div>
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                        <Calendar size={12} /> {date}
+                      </p>
+                      <h3 className="mt-1 text-lg font-bold text-slate-800">
+                        {title}
+                      </h3>
+                      <div className="mt-2 flex items-center gap-3 text-xs font-medium text-slate-500">
+                        <span className="flex items-center gap-1"><Clock size={12}/> {time}</span>
+                        {walk.durationMinutes && <span>• {walk.durationMinutes} min</span>}
                       </div>
                     </div>
-
-                    {/* Chevron / action */}
-                    <div className="flex items-center ml-2">
-                      <button
-                        className="p-2 rounded-full hover:bg-white/40 transition"
-                        aria-label="View details"
-                        onClick={() => {
-                          // Placeholder handler - replace with actual navigation when available
-                          console.log("Open details for", walk.id);
-                        }}
-                      >
-                        <ChevronRight size={20} className="text-slate-500 group-hover:text-slate-700" />
-                      </button>
-                    </div>
+                    <ChevronRight className="text-slate-300 group-hover:text-rose-500 transition-colors" />
                   </div>
                 </article>
               );

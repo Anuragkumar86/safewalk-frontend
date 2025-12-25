@@ -1,8 +1,11 @@
 "use client";
 import { useState } from "react";
 import { useContacts } from "@/hooks/useContact";
-import { Trash2, UserPlus, Phone, Mail, User, X, Check } from "lucide-react";
+import { Trash2, UserPlus, Phone, Mail, User, X, Check, Lock, ArrowRight } from "lucide-react";
 import toast from "react-hot-toast";
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+
 
 export default function ContactsPage() {
   const { contacts = [], loading, addContact, deleteContact } = useContacts();
@@ -14,6 +17,9 @@ export default function ContactsPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [contactToDelete, setContactToDelete] = useState<any | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  const { data: session, status } = useSession();
+  const router = useRouter();
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,6 +65,36 @@ export default function ContactsPage() {
     if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
     return (parts[0][0] + parts[1][0]).toUpperCase();
   };
+
+    // 1. Show a loading state while checking the session
+    if (status === "loading") {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-rose-600"></div>
+            </div>
+        );
+    }
+
+    // 2. If NOT logged in, show the "Access Denied" view
+    if (!session) {
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[80vh] p-6 text-center">
+                <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mb-6">
+                    <Lock className="text-slate-400" size={40} />
+                </div>
+                <h2 className="text-3xl font-black text-slate-800 mb-4">Private Contacts</h2>
+                <p className="text-slate-500 max-w-sm mb-8">
+                    Your emergency contacts are encrypted and private. Please log in to manage your safety network.
+                </p>
+                <button
+                    onClick={() => router.push("/login")}
+                    className="flex items-center gap-2 bg-rose-600 text-white px-8 py-4 rounded-2xl font-bold hover:bg-rose-700 transition-all shadow-lg shadow-rose-200"
+                >
+                    Login to View <ArrowRight size={20} />
+                </button>
+            </div>
+        );
+    }
 
   return (
     <div className="max-w-5xl mx-auto p-6">
