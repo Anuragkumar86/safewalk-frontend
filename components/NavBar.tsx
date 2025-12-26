@@ -3,13 +3,14 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Home, History, Users, Menu, X, LogOut, ShieldCheck, LogIn, UserPlus } from 'lucide-react';
+import Image from 'next/image';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
   const pathname = usePathname();
   const router = useRouter();
-  
+
   // 1. Check for user in localStorage on mount
   useEffect(() => {
     const savedUser = localStorage.getItem("user");
@@ -36,14 +37,20 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 bg-white border-b border-gray-100 z-50 shadow-sm">
+    <nav className="fixed top-0 left-0 right-0 bg-white border-b border-gray-100 z-50 shadow-sm"
+      style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
-          
+
           {/* LOGO */}
           <Link href="/" className="flex items-center gap-2 group">
-            <div className="bg-rose-600 p-1.5 rounded-lg">
-              <ShieldCheck className="text-white group-hover:rotate-12 transition-transform" size={24} />
+            <div className="relative w-10 h-10">
+              <Image
+                src="/logo.png"
+                alt="SafeWalk Logo"
+                fill
+                className="object-contain group-hover:scale-110 transition-transform"
+              />
             </div>
             <span className="font-black text-xl text-slate-900 tracking-tight">SafeWalk</span>
           </Link>
@@ -53,12 +60,11 @@ const Navbar = () => {
             {isLoggedIn ? (
               <>
                 {navItems.map((item) => (
-                  <Link 
-                    key={item.href} 
+                  <Link
+                    key={item.href}
                     href={item.href}
-                    className={`flex items-center gap-1.5 font-bold text-sm transition ${
-                      pathname === item.href ? 'text-rose-600' : 'text-slate-500 hover:text-rose-500'
-                    }`}
+                    className={`flex items-center gap-1.5 font-bold text-sm transition ${pathname === item.href ? 'text-rose-600' : 'text-slate-500 hover:text-rose-500'
+                      }`}
                   >
                     {item.icon} {item.name}
                   </Link>
@@ -67,8 +73,8 @@ const Navbar = () => {
                 <span className="text-xs text-slate-400 font-bold uppercase tracking-widest">
                   {user?.name?.split(' ')[0]}
                 </span>
-                <button 
-                  onClick={handleLogout} 
+                <button
+                  onClick={handleLogout}
                   className="text-slate-900 hover:text-rose-600 font-bold text-sm flex items-center gap-1 transition"
                 >
                   <LogOut size={18} /> Logout
@@ -86,8 +92,8 @@ const Navbar = () => {
 
           {/* MOBILE MENU BUTTON */}
           <div className="md:hidden">
-            <button 
-              onClick={() => setIsOpen(!isOpen)} 
+            <button
+              onClick={() => setIsOpen(!isOpen)}
               className="p-2 rounded-xl text-slate-600 active:bg-slate-50 transition"
             >
               {isOpen ? <X size={28} /> : <Menu size={28} />}
@@ -103,29 +109,28 @@ const Navbar = () => {
             {isLoggedIn ? (
               <>
                 <div className="px-3 mb-4 flex items-center gap-3">
-                   <div className="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 font-bold">
-                     {user?.name?.charAt(0)}
-                   </div>
-                   <div>
-                     <p className="font-bold text-slate-900">{user?.name}</p>
-                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Verified User</p>
-                   </div>
+                  <div className="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 font-bold">
+                    {user?.name?.charAt(0)}
+                  </div>
+                  <div>
+                    <p className="font-bold text-slate-900">{user?.name}</p>
+                    {/* <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Verified User</p> */}
+                  </div>
                 </div>
                 {navItems.map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
                     onClick={() => setIsOpen(false)}
-                    className={`flex items-center gap-4 p-4 rounded-2xl font-bold transition ${
-                      pathname === item.href ? 'bg-rose-50 text-rose-600' : 'text-slate-600 active:bg-slate-50'
-                    }`}
+                    className={`flex items-center gap-4 p-4 rounded-2xl font-bold transition ${pathname === item.href ? 'bg-rose-50 text-rose-600' : 'text-slate-600 active:bg-slate-50'
+                      }`}
                   >
                     {item.icon} {item.name}
                   </Link>
                 ))}
                 <div className="border-t border-slate-50 my-4" />
-                <button 
-                  onClick={handleLogout} 
+                <button
+                  onClick={handleLogout}
                   className="flex items-center gap-4 p-4 w-full text-rose-600 active:bg-rose-50 rounded-2xl transition font-black"
                 >
                   <LogOut size={20} /> Logout Account
@@ -133,16 +138,16 @@ const Navbar = () => {
               </>
             ) : (
               <div className="grid grid-cols-2 gap-3 p-2">
-                <Link 
-                  href="/login" 
-                  onClick={() => setIsOpen(false)} 
+                <Link
+                  href="/login"
+                  onClick={() => setIsOpen(false)}
                   className="flex items-center justify-center gap-2 p-4 text-slate-900 font-bold border border-slate-100 rounded-2xl shadow-sm"
                 >
                   <LogIn size={20} /> Login
                 </Link>
-                <Link 
-                  href="/register" 
-                  onClick={() => setIsOpen(false)} 
+                <Link
+                  href="/register"
+                  onClick={() => setIsOpen(false)}
                   className="flex items-center justify-center gap-2 p-4 bg-rose-600 text-white rounded-2xl font-bold shadow-lg shadow-rose-100"
                 >
                   <UserPlus size={20} /> Register

@@ -24,7 +24,6 @@ export default function HistoryPage() {
 
   useEffect(() => {
     const fetchHistory = async () => {
-      // 1. Get auth data from localStorage
       const savedToken = localStorage.getItem("token");
       const savedUser = localStorage.getItem("user");
 
@@ -40,7 +39,6 @@ export default function HistoryPage() {
         setLoading(true);
         setError(null);
 
-        // 2. Fetch using the manual token
         const res = await axios.get<Walk[]>(`${process.env.NEXT_PUBLIC_API_URL}/walk/history`, {
           headers: { Authorization: `Bearer ${savedToken}` },
         });
@@ -86,82 +84,68 @@ export default function HistoryPage() {
     }
   };
 
-  // --- 1. Loading State ---
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6">
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex flex-col items-center justify-center p-6">
         <div className="h-12 w-12 rounded-full border-4 border-rose-600 border-t-transparent animate-spin mb-4"></div>
         <p className="text-slate-500 font-bold animate-pulse">Loading your history...</p>
       </div>
     );
   }
 
-  // --- 2. Unauthenticated State (No user in localStorage) ---
   if (!user) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-6 text-center bg-slate-50">
-        <div className="w-24 h-24 bg-white rounded-[2rem] shadow-xl flex items-center justify-center mb-8">
+      <div
+        style={{ paddingTop: "calc(env(safe-area-inset-top, 12px) + 68px)" }}
+        className="flex flex-col items-center justify-center min-h-screen p-6 text-center bg-gradient-to-b from-slate-50 to-white"
+      >
+        <div className="w-24 h-24 bg-white rounded-2xl shadow-lg flex items-center justify-center mb-6">
           <Lock className="text-rose-500" size={44} />
         </div>
-        <h2 className="text-3xl font-black text-slate-900 mb-4">History Locked</h2>
-        <p className="text-slate-500 max-w-sm mb-10 font-medium leading-relaxed">
+        <h2 className="text-3xl font-extrabold text-slate-900 mb-3">History Locked</h2>
+        <p className="text-slate-500 max-w-sm mb-8 font-medium leading-relaxed">
           Walk history is only visible to verified users. Please sign in to view your safety logs.
         </p>
-        <button
-          onClick={() => router.push("/login")}
-          className="flex items-center gap-3 bg-rose-600 text-white px-10 py-4 rounded-2xl font-bold shadow-xl shadow-rose-200"
-        >
-          Login to Continue <ArrowRight size={20} />
+        <button onClick={() => router.push("/login")} className="flex items-center gap-3 bg-rose-600 text-white px-8 py-3 rounded-2xl font-bold shadow-md">
+          Login to Continue <ArrowRight size={18} />
         </button>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 pb-24 pt-20 px-4">
+    <div style={{ paddingTop: "calc(env(safe-area-inset-top, 12px) + 68px)" }} className="min-h-screen bg-gradient-to-b from-slate-50 to-white pb-24 px-4">
+
       <div className="max-w-xl mx-auto">
-        <header className="mb-8 ml-2">
-          <h1 className="text-3xl font-black text-slate-900">Journey Logs</h1>
-          <p className="text-sm text-slate-500 font-bold mt-1 uppercase tracking-tighter">
-            Your safety record
-          </p>
+        <header className="mb-6">
+          <h1 className="text-3xl font-extrabold text-slate-900">Journey Logs</h1>
+          <p className="text-sm text-slate-500 font-medium mt-1">Your safety record</p>
         </header>
 
-        {error && (
-          <div className="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-100 text-rose-800 text-sm font-bold">
-            {error}
-          </div>
-        )}
+        {error && <div className="mb-6 p-4 rounded-xl bg-rose-50 border border-rose-100 text-rose-800 text-sm font-bold">{error}</div>}
 
         {history.length === 0 ? (
-          <div className="text-center bg-white p-12 rounded-[3rem] shadow-sm border border-slate-100">
-            <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-3xl bg-slate-50 text-slate-300 mb-4">
+          <div className="text-center bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-2xl bg-slate-50 text-slate-300 mb-3">
               <ShieldCheck size={32} />
             </div>
-            <h3 className="text-xl font-bold text-slate-800">No logs found</h3>
-            <p className="mt-2 text-sm text-slate-500 font-medium">
-              Start a safe walk to see your history here.
-            </p>
+            <h3 className="text-lg font-bold text-slate-800">No logs found</h3>
+            <p className="mt-2 text-sm text-slate-500">Start a safe walk to see your history here.</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {history.map((walk) => (
-              <article
-                key={walk.id}
-                className="bg-white rounded-[2rem] p-5 shadow-sm border border-slate-50 active:scale-[0.98] transition-transform flex items-center gap-4"
-              >
-                <div className="h-14 w-14 rounded-2xl bg-slate-50 flex items-center justify-center shrink-0">
+              <article key={walk.id} className="bg-white rounded-2xl p-4 shadow-sm border border-slate-50 flex items-center gap-3">
+                <div className="h-12 w-12 rounded-lg bg-slate-50 flex items-center justify-center shrink-0">
                   {statusBadge(walk.status)}
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1 mb-1">
-                    <Calendar size={10} /> {formatDate(walk.startTime)}
+                  <p className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider mb-1 flex items-center gap-1">
+                    <Calendar size={12} /> {formatDate(walk.startTime)}
                   </p>
-                  <h3 className="text-base font-bold text-slate-800 truncate">
-                    {walk.status === "SAFE" ? "Walk Completed" : "Emergency Alert"}
-                  </h3>
-                  <div className="flex items-center gap-3 text-xs font-bold text-slate-400 mt-1">
+                  <h3 className="text-base font-bold text-slate-800 truncate">{walk.status === "SAFE" ? "Walk Completed" : "Emergency Alert"}</h3>
+                  <div className="flex items-center gap-3 text-xs text-slate-400 mt-1">
                     <span className="flex items-center gap-1"><Clock size={12} /> {formatTime(walk.startTime)}</span>
                     {walk.durationMinutes && <span>• {walk.durationMinutes}m</span>}
                   </div>

@@ -24,3 +24,23 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 } */
+
+
+.react-hot-toast-container {
+  pointer-events: none !important;
+}
+
+/* 2. Re-enable clicks for the actual toast bubble so you can click "Add Contact" */
+.react-hot-toast-container > div {
+  pointer-events: auto !important;
+}
+
+/* 3. Global Safe Area Fix */
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+}
+
+body {
+  padding-top: var(--sat);
+  background-color: #f8fafc; /* slate-50 */
+}
