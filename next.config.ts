@@ -2,9 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
-  output: 'export',      // CRITICAL: Tells Next.js to create a static 'out' folder
+  output: 'export',
+  trailingSlash: true, 
   images: {
-    unoptimized: true,   // Mobile apps cannot use Next.js default image optimization
+    unoptimized: true, 
   },
 };
 
