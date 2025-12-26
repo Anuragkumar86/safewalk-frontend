@@ -1,37 +1,45 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react"; // Added useEffect
 import { useContacts } from "@/hooks/useContact";
 import { Trash2, UserPlus, Phone, Mail, User, X, Check, Lock, ArrowRight } from "lucide-react";
 import toast from "react-hot-toast";
-import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-
+import { MdEmail } from "react-icons/md";
 
 export default function ContactsPage() {
-  const { contacts = [], loading, addContact, deleteContact } = useContacts();
+  const { contacts = [], loading: contactsLoading, addContact, deleteContact } = useContacts();
   const [showForm, setShowForm] = useState(false);
   const [creating, setCreating] = useState(false);
   const [newContact, setNewContact] = useState({ name: "", email: "", phoneNumber: "" });
 
-  // For delete confirmation
+  // Authentication State
+  const [user, setUser] = useState<any>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [contactToDelete, setContactToDelete] = useState<any | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const { data: session, status } = useSession();
   const router = useRouter();
+
+  // REPLACE useSession: Check localStorage on mount
+  useEffect(() => {
+    const savedUser = localStorage.getItem("user");
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
+    setAuthLoading(false);
+  }, []);
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     setCreating(true);
     try {
-      // assuming addContact can be async
       await addContact(newContact);
       toast.success("Contact added");
       setShowForm(false);
       setNewContact({ name: "", email: "", phoneNumber: "" });
     } catch (err: any) {
-      console.error(err);
       toast.error(err?.message || "Failed to add contact");
     } finally {
       setCreating(false);
@@ -50,7 +58,6 @@ export default function ContactsPage() {
       await deleteContact(contactToDelete.id);
       toast.success("Contact removed");
     } catch (err: any) {
-      console.error(err);
       toast.error(err?.message || "Failed to delete contact");
     } finally {
       setDeleting(false);
@@ -66,130 +73,115 @@ export default function ContactsPage() {
     return (parts[0][0] + parts[1][0]).toUpperCase();
   };
 
-    // 1. Show a loading state while checking the session
-    if (status === "loading") {
-        return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-rose-600"></div>
-            </div>
-        );
-    }
+  // 1. Loading State
+  if (authLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-rose-600"></div>
+      </div>
+    );
+  }
 
-    // 2. If NOT logged in, show the "Access Denied" view
-    if (!session) {
-        return (
-            <div className="flex flex-col items-center justify-center min-h-[80vh] p-6 text-center">
-                <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mb-6">
-                    <Lock className="text-slate-400" size={40} />
-                </div>
-                <h2 className="text-3xl font-black text-slate-800 mb-4">Private Contacts</h2>
-                <p className="text-slate-500 max-w-sm mb-8">
-                    Your emergency contacts are encrypted and private. Please log in to manage your safety network.
-                </p>
-                <button
-                    onClick={() => router.push("/login")}
-                    className="flex items-center gap-2 bg-rose-600 text-white px-8 py-4 rounded-2xl font-bold hover:bg-rose-700 transition-all shadow-lg shadow-rose-200"
-                >
-                    Login to View <ArrowRight size={20} />
-                </button>
-            </div>
-        );
-    }
+  // 2. Access Denied (Not Logged In)
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[80vh] p-6 text-center">
+        <div className="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mb-6 text-slate-400">
+          <Lock size={40} />
+        </div>
+        <h2 className="text-3xl font-black text-slate-800 mb-4">Private Contacts</h2>
+        <p className="text-slate-500 max-w-sm mb-8 font-medium">
+          Your emergency contacts are encrypted and private. Please log in to manage your safety network.
+        </p>
+        <button
+          onClick={() => router.push("/login")}
+          className="flex items-center gap-2 bg-rose-600 text-white px-10 py-4 rounded-2xl font-bold hover:bg-rose-700 transition-all shadow-lg shadow-rose-200"
+        >
+          Login to View <ArrowRight size={20} />
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-5xl mx-auto p-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 py-13">
+    <div className="max-w-5xl mx-auto p-4 md:p-6 mb-20 pt-15">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8 pt-15">
         <div>
-          <h1 className="text-3xl font-extrabold text-gray-800">Emergency Contacts</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Add trusted guardians who will be alerted in case of an emergency.
+          <h1 className="text-3xl font-black text-slate-900">Emergency Contacts</h1>
+          <p className="text-sm text-slate-500 mt-1 font-medium">
+            Add trusted guardians who will be alerted in an emergency.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setShowForm((s) => !s)}
-            className="inline-flex items-center gap-2 rounded-lg bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 shadow-md transition"
-            aria-expanded={showForm}
-          >
-            <UserPlus className="w-4 h-4" />
-            <span className="font-medium">Add Guardian</span>
-          </button>
-        </div>
+        <button
+          onClick={() => setShowForm((s) => !s)}
+          className="inline-flex items-center justify-center gap-2 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white px-6 py-3 shadow-lg shadow-rose-100 transition font-bold"
+        >
+          <UserPlus size={18} />
+          <span>Add Guardian</span>
+        </button>
       </div>
 
-      {/* Add form */}
-      <div
-        className={`transform transition-all duration-300 ${
-          showForm ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2 pointer-events-none"
-        }`}
-      >
-        <form
-          onSubmit={handleAdd}
-          className="bg-white border border-gray-100 rounded-2xl p-6 shadow-sm mb-6"
-          aria-hidden={!showForm}
-        >
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <label className="flex flex-col">
-              <span className="text-xs font-medium text-gray-600 mb-1">Full name</span>
-              <div className="flex items-center gap-2 border rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-rose-300">
-                <User className="w-4 h-4 text-gray-400" />
+      {/* Add form - Mobile Optimized */}
+      <div className={`transition-all duration-300 ${showForm ? "block" : "hidden"}`}>
+        <form onSubmit={handleAdd} className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div className="flex flex-col">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Full name</span>
+              <div className="flex items-center gap-3 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 focus-within:ring-2 focus-within:ring-rose-200">
+                <User size={18} className="text-slate-400" />
                 <input
                   value={newContact.name}
                   onChange={(e) => setNewContact({ ...newContact, name: e.target.value })}
                   placeholder="Jane Doe"
                   required
-                  className="w-full outline-none text-sm"
+                  className="w-full bg-transparent outline-none text-sm font-medium"
                 />
               </div>
-            </label>
+            </div>
 
-            <label className="flex flex-col">
-              <span className="text-xs font-medium text-gray-600 mb-1">Email</span>
-              <div className="flex items-center gap-2 border rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-rose-300">
-                <Mail className="w-4 h-4 text-gray-400" />
+            <div className="flex flex-col">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Email</span>
+              <div className="flex items-center gap-3 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 focus-within:ring-2 focus-within:ring-rose-200">
+                <Mail size={18} className="text-slate-400" />
                 <input
                   type="email"
                   value={newContact.email}
                   onChange={(e) => setNewContact({ ...newContact, email: e.target.value })}
                   placeholder="jane@example.com"
                   required
-                  className="w-full outline-none text-sm"
+                  className="w-full bg-transparent outline-none text-sm font-medium"
                 />
               </div>
-            </label>
+            </div>
 
-            <label className="flex flex-col">
-              <span className="text-xs font-medium text-gray-600 mb-1">Phone number</span>
-              <div className="flex items-center gap-2 border rounded-lg px-3 py-2 focus-within:ring-2 focus-within:ring-rose-300">
-                <Phone className="w-4 h-4 text-gray-400" />
+            <div className="flex flex-col">
+              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Phone number</span>
+              <div className="flex items-center gap-3 bg-slate-50 border border-slate-100 rounded-2xl px-4 py-3 focus-within:ring-2 focus-within:ring-rose-200">
+                <Phone size={18} className="text-slate-400" />
                 <input
                   value={newContact.phoneNumber}
                   onChange={(e) => setNewContact({ ...newContact, phoneNumber: e.target.value })}
-                  placeholder="+1 555 555 5555"
+                  placeholder="+1 555 000 0000"
                   required
-                  className="w-full outline-none text-sm"
+                  className="w-full bg-transparent outline-none text-sm font-medium"
                 />
               </div>
-            </label>
+            </div>
           </div>
 
-          <div className="mt-4 flex items-center gap-3">
+          <div className="mt-6 flex items-center gap-3">
             <button
               type="submit"
               disabled={creating}
-              className="inline-flex items-center gap-2 bg-gray-900 text-white px-4 py-2 rounded-lg shadow hover:bg-black transition disabled:opacity-60"
+              className="bg-slate-900 text-white px-8 py-3 rounded-2xl font-bold shadow-lg hover:bg-black transition disabled:opacity-50"
             >
               {creating ? "Saving..." : "Save Contact"}
             </button>
-
             <button
               type="button"
-              onClick={() => {
-                setShowForm(false);
-                setNewContact({ name: "", email: "", phoneNumber: "" });
-              }}
-              className="inline-flex items-center gap-2 border px-4 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition"
+              onClick={() => setShowForm(false)}
+              className="text-slate-500 font-bold px-6 py-3 hover:bg-slate-50 rounded-2xl transition"
             >
               Cancel
             </button>
@@ -197,135 +189,78 @@ export default function ContactsPage() {
         </form>
       </div>
 
-      {/* Contacts grid */}
-      <div>
-        {loading ? (
-          <div className="flex items-center justify-center py-12">
-            <svg
-              className="animate-spin h-8 w-8 text-rose-600"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              aria-hidden
-            >
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-            </svg>
-          </div>
+      {/* Contacts List */}
+      <div className="space-y-4">
+        {contactsLoading ? (
+          <div className="py-20 text-center text-slate-400 font-medium">Loading your guardians...</div>
         ) : contacts.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-gray-200 p-8 text-center text-gray-500">
-            <User className="mx-auto mb-3 text-gray-300" />
-            <p className="text-sm">No guardians added yet.</p>
-            <p className="text-xs mt-2">Add someone you trust so they can be notified in emergencies.</p>
+          <div className="rounded-[2.5rem] border-2 border-dashed border-slate-100 p-12 text-center">
+            <div className="bg-slate-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
+              <User size={30} />
+            </div>
+            <p className="text-slate-500 font-bold">No guardians added yet</p>
+            <p className="text-xs text-slate-400 mt-1 max-w-[200px] mx-auto">Add someone you trust to keep you safe.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {contacts.map((contact: any) => (
               <div
                 key={contact.id}
-                className="flex items-center justify-between bg-white p-4 rounded-2xl shadow-sm border border-gray-50 hover:shadow-md transition"
+                className="flex items-center justify-between bg-white p-5 rounded-[2rem] border border-slate-50 shadow-sm hover:shadow-md transition-all"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center font-semibold text-sm">
+                  <div className="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center font-black text-lg">
                     {initials(contact.name)}
                   </div>
                   <div>
-                    <div className="flex items-center gap-2 font-semibold text-gray-800">
-                      <User className="w-4 h-4 text-gray-400" />
-                      <span>{contact.name}</span>
+                    <h3 className="font-bold text-slate-800">{contact.name}</h3>
+                    <div className="flex items-center gap-3 text-xs text-slate-400 font-bold mt-1 uppercase tracking-tighter">
+                      <span className="flex items-center gap-1"><Phone size={12}/> {contact.phoneNumber}</span>
+                      
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
-                      <Mail className="w-4 h-4 text-gray-400" />
-                      <span>{contact.email}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
-                      <Phone className="w-4 h-4 text-gray-400" />
-                      <span>{contact.phoneNumber}</span>
+                    <div className="flex items-center gap-3 text-xs text-slate-400 font-bold mt-1 uppercase tracking-tighter">
+                      
+                      <span className="flex items-center gap-1"><MdEmail size={12}/> {(contact.email)}</span>
                     </div>
                   </div>
                 </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => openDeleteConfirm(contact)}
-                    className="inline-flex items-center justify-center w-9 h-9 rounded-lg text-gray-500 hover:text-rose-600 hover:bg-rose-50 transition"
-                    aria-label={`Delete ${contact.name}`}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+                <button
+                  onClick={() => openDeleteConfirm(contact)}
+                  className="w-10 h-10 flex items-center justify-center text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
+                >
+                  <Trash2 size={18} />
+                </button>
               </div>
             ))}
           </div>
         )}
       </div>
 
-      {/* Confirmation modal */}
+      {/* Delete Modal - Mobile Friendly */}
       {confirmOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center px-4"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="confirm-title"
-        >
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity" onClick={() => !deleting && setConfirmOpen(false)} />
-
-          <div className="relative bg-white rounded-2xl shadow-xl max-w-md w-full p-6 z-10">
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 bg-rose-50 rounded-full p-3">
-                <Trash2 className="w-5 h-5 text-rose-600" />
-              </div>
-              <div className="flex-1">
-                <h3 id="confirm-title" className="text-lg font-semibold text-gray-800">
-                  Delete guardian
-                </h3>
-                <p className="text-sm text-gray-500 mt-1">
-                  Are you sure you want to remove{" "}
-                  <span className="font-medium text-gray-700">{contactToDelete?.name}</span> from your guardians?
-                  This action cannot be undone.
-                </p>
-              </div>
+        <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4">
+          <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={() => !deleting && setConfirmOpen(false)} />
+          <div className="relative bg-white rounded-[2.5rem] w-full max-w-sm p-8 shadow-2xl animate-in slide-in-from-bottom-10">
+            <div className="bg-rose-50 w-16 h-16 rounded-3xl flex items-center justify-center mb-6 text-rose-600">
+              <Trash2 size={28} />
             </div>
-
-            <div className="mt-6 flex justify-end gap-3">
-              <button
-                onClick={() => {
-                  if (!deleting) {
-                    setConfirmOpen(false);
-                    setContactToDelete(null);
-                  }
-                }}
-                className="inline-flex items-center gap-2 px-4 py-2 border rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition"
-                disabled={deleting}
-              >
-                <X className="w-4 h-4" />
-                Cancel
-              </button>
-
+            <h3 className="text-2xl font-black text-slate-900 mb-2">Remove Guardian?</h3>
+            <p className="text-slate-500 text-sm font-medium mb-8">
+              This will remove <span className="text-slate-900 font-bold">{contactToDelete?.name}</span> from your safety network.
+            </p>
+            <div className="flex flex-col gap-3">
               <button
                 onClick={handleConfirmDelete}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-lg text-sm hover:bg-rose-700 transition disabled:opacity-60"
                 disabled={deleting}
+                className="w-full bg-rose-600 text-white py-4 rounded-2xl font-bold shadow-lg shadow-rose-100 disabled:opacity-50"
               >
-                {deleting ? (
-                  <>
-                    <svg
-                      className="animate-spin h-4 w-4"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                    >
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                    </svg>
-                    Deleting...
-                  </>
-                ) : (
-                  <>
-                    <Check className="w-4 h-4" />
-                    Delete
-                  </>
-                )}
+                {deleting ? "Removing..." : "Yes, Remove"}
+              </button>
+              <button
+                onClick={() => setConfirmOpen(false)}
+                className="w-full py-4 text-slate-400 font-bold"
+              >
+                Cancel
               </button>
             </div>
           </div>

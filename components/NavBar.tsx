@@ -1,36 +1,54 @@
 "use client";
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { useSession, signOut } from 'next-auth/react';
+import { usePathname, useRouter } from 'next/navigation';
 import { Home, History, Users, Menu, X, LogOut, ShieldCheck, LogIn, UserPlus } from 'lucide-react';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const pathname = usePathname();
-  const { data: session, status } = useSession();
+  const router = useRouter();
   
-  // status can be: "loading", "authenticated", or "unauthenticated"
-  const isLoggedIn = status === "authenticated";
+  // 1. Check for user in localStorage on mount
+  useEffect(() => {
+    const savedUser = localStorage.getItem("user");
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
+  }, [pathname]); // Re-check when route changes
+
+  const isLoggedIn = !!user;
+
+  // 2. Manual Logout Function
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setUser(null);
+    setIsOpen(false);
+    router.push("/login");
+  };
 
   const navItems = [
-    { name: 'Home', href: '/dashboard', icon: <Home size={20} /> },
+    { name: 'Track', href: '/dashboard', icon: <Home size={20} /> },
     { name: 'History', href: '/dashboard/history', icon: <History size={20} /> },
     { name: 'Contacts', href: '/dashboard/contacts', icon: <Users size={20} /> },
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 z-50 shadow-sm">
+    <nav className="fixed top-0 left-0 right-0 bg-white border-b border-gray-100 z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           
           {/* LOGO */}
           <Link href="/" className="flex items-center gap-2 group">
-            <ShieldCheck className="text-blue-600 group-hover:scale-110 transition-transform" size={28} />
-            <span className="font-bold text-xl text-gray-900">SafeWalk</span>
+            <div className="bg-rose-600 p-1.5 rounded-lg">
+              <ShieldCheck className="text-white group-hover:rotate-12 transition-transform" size={24} />
+            </div>
+            <span className="font-black text-xl text-slate-900 tracking-tight">SafeWalk</span>
           </Link>
 
-          {/* DESKTOP NAV (Laptop) */}
+          {/* DESKTOP NAV */}
           <div className="hidden md:flex items-center space-x-6">
             {isLoggedIn ? (
               <>
@@ -38,27 +56,29 @@ const Navbar = () => {
                   <Link 
                     key={item.href} 
                     href={item.href}
-                    className={`flex items-center gap-1.5 font-medium transition ${
-                      pathname === item.href ? 'text-blue-600' : 'text-gray-600 hover:text-blue-500'
+                    className={`flex items-center gap-1.5 font-bold text-sm transition ${
+                      pathname === item.href ? 'text-rose-600' : 'text-slate-500 hover:text-rose-500'
                     }`}
                   >
                     {item.icon} {item.name}
                   </Link>
                 ))}
-                <div className="h-6 w-[1px] bg-gray-200 ml-2" />
-                <span className="text-sm text-gray-500 font-medium">Hi, {session?.user?.name}</span>
+                <div className="h-4 w-[1px] bg-slate-200 mx-2" />
+                <span className="text-xs text-slate-400 font-bold uppercase tracking-widest">
+                  {user?.name?.split(' ')[0]}
+                </span>
                 <button 
-                  onClick={() => signOut({ callbackUrl: '/login' })} 
-                  className="text-red-500 hover:text-red-600 font-medium flex items-center gap-1 transition"
+                  onClick={handleLogout} 
+                  className="text-slate-900 hover:text-rose-600 font-bold text-sm flex items-center gap-1 transition"
                 >
                   <LogOut size={18} /> Logout
                 </button>
               </>
             ) : (
               <div className="flex items-center gap-4">
-                <Link href="/login" className="text-gray-600 font-medium hover:text-blue-600">Login</Link>
-                <Link href="/register" className="bg-blue-600 text-white px-3 py-2 rounded-xl font-medium hover:bg-blue-700 shadow-md transition">
-                  Register
+                <Link href="/login" className="text-slate-600 font-bold text-sm hover:text-rose-600">Login</Link>
+                <Link href="/register" className="bg-rose-600 text-white px-5 py-2.5 rounded-2xl text-sm font-bold hover:bg-rose-700 shadow-lg shadow-rose-100 transition">
+                  Join Now
                 </Link>
               </div>
             )}
@@ -68,7 +88,7 @@ const Navbar = () => {
           <div className="md:hidden">
             <button 
               onClick={() => setIsOpen(!isOpen)} 
-              className="p-2 rounded-md text-gray-600 hover:bg-gray-100 transition"
+              className="p-2 rounded-xl text-slate-600 active:bg-slate-50 transition"
             >
               {isOpen ? <X size={28} /> : <Menu size={28} />}
             </button>
@@ -76,46 +96,54 @@ const Navbar = () => {
         </div>
       </div>
 
-      {/* MOBILE SIDEBAR (Dropdown) */}
+      {/* MOBILE SIDEBAR */}
       {isOpen && (
-        <div className="md:hidden bg-white border-b border-gray-200 absolute w-full shadow-xl animate-in fade-in slide-in-from-top-2">
-          <div className="px-4 py-4 space-y-1">
+        <div className="md:hidden bg-white border-b border-slate-100 absolute w-full shadow-2xl animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="px-4 py-6 space-y-2">
             {isLoggedIn ? (
               <>
-                <div className="px-3 py-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">Menu</div>
+                <div className="px-3 mb-4 flex items-center gap-3">
+                   <div className="w-10 h-10 rounded-full bg-rose-50 flex items-center justify-center text-rose-600 font-bold">
+                     {user?.name?.charAt(0)}
+                   </div>
+                   <div>
+                     <p className="font-bold text-slate-900">{user?.name}</p>
+                     <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Verified User</p>
+                   </div>
+                </div>
                 {navItems.map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
                     onClick={() => setIsOpen(false)}
-                    className={`flex items-center gap-3 p-3 rounded-xl transition ${
-                      pathname === item.href ? 'bg-blue-50 text-blue-600' : 'text-gray-600 active:bg-gray-50'
+                    className={`flex items-center gap-4 p-4 rounded-2xl font-bold transition ${
+                      pathname === item.href ? 'bg-rose-50 text-rose-600' : 'text-slate-600 active:bg-slate-50'
                     }`}
                   >
                     {item.icon} {item.name}
                   </Link>
                 ))}
-                <div className="border-t border-gray-100 my-2" />
+                <div className="border-t border-slate-50 my-4" />
                 <button 
-                  onClick={() => signOut({ callbackUrl: '/login' })} 
-                  className="flex items-center gap-3 p-3 w-full text-red-500 active:bg-red-50 rounded-xl transition font-medium"
+                  onClick={handleLogout} 
+                  className="flex items-center gap-4 p-4 w-full text-rose-600 active:bg-rose-50 rounded-2xl transition font-black"
                 >
-                  <LogOut size={20} /> Logout ({session?.user?.name})
+                  <LogOut size={20} /> Logout Account
                 </button>
               </>
             ) : (
-              <div className="flex flex-col gap-2 p-2">
+              <div className="grid grid-cols-2 gap-3 p-2">
                 <Link 
                   href="/login" 
                   onClick={() => setIsOpen(false)} 
-                  className="flex items-center justify-center gap-2 p-3 text-gray-700 font-semibold border border-gray-200 rounded-xl"
+                  className="flex items-center justify-center gap-2 p-4 text-slate-900 font-bold border border-slate-100 rounded-2xl shadow-sm"
                 >
                   <LogIn size={20} /> Login
                 </Link>
                 <Link 
                   href="/register" 
                   onClick={() => setIsOpen(false)} 
-                  className="flex items-center justify-center gap-2 p-3 bg-blue-600 text-white rounded-xl font-semibold shadow-lg shadow-blue-200"
+                  className="flex items-center justify-center gap-2 p-4 bg-rose-600 text-white rounded-2xl font-bold shadow-lg shadow-rose-100"
                 >
                   <UserPlus size={20} /> Register
                 </Link>

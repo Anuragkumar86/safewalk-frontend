@@ -1,7 +1,9 @@
 
 "use client";
+
+
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import axios from "axios";
 import dynamic from "next/dynamic";
 import "leaflet/dist/leaflet.css";
@@ -14,10 +16,14 @@ const TileLayer = dynamic(() => import("react-leaflet").then((mod) => mod.TileLa
 const Marker = dynamic(() => import("react-leaflet").then((mod) => mod.Marker), { ssr: false });
 
 export default function PublicTracker() {
-  const { id } = useParams();
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id"); // Get id from URL query string
+  
   const [data, setData] = useState<any>(null);
 
   useEffect(() => {
+    if (!id) return; // Wait until ID is available
+
     const fetchData = async () => {
       try {
         const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/walk/public/${id}`);
@@ -26,8 +32,8 @@ export default function PublicTracker() {
         console.error("Link invalid");
       }
     };
+    
     fetchData();
-    // Refresh every 30 seconds for live updates
     const interval = setInterval(fetchData, 30000);
     return () => clearInterval(interval);
   }, [id]);
