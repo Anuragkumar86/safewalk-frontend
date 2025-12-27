@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { User, Mail, Lock, Loader2 } from "lucide-react";
+import Image from "next/image";
 
 
 export default function SignupPage() {
@@ -58,11 +59,15 @@ export default function SignupPage() {
           </div>
 
           <div className="z-10 flex flex-col items-center text-center px-6">
-            <div className="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center mb-4 border border-white/20">
-              {/* Decorative icon */}
-              <svg className="w-10 h-10 text-white" viewBox="0 0 24 24" fill="none" aria-hidden>
-                <path d="M12 2L20 8v8l-8 6-8-6V8l8-6z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+            <div className="w-15 h-15 bg-white/10 rounded-3xl flex items-center justify-center mb-4 border border-white/20">
+              <div className="relative w-15 h-15">
+                <Image
+                  src="/logo3.png"
+                  alt="SafeWalk Logo"
+                  fill
+                  className="object-contain group-hover:scale-110 transition-transform rounded-2xl"
+                />
+              </div>
             </div>
 
             <h2 className="text-2xl font-extrabold tracking-tight mb-2">SafeWalk</h2>
@@ -153,7 +158,7 @@ export default function SignupPage() {
               {isLoading ? <Loader2 className="animate-spin" /> : "Create account"}
             </button>
 
-            
+
 
             <p className="text-center text-sm text-slate-500 font-medium mt-2">
               Already have an account?{" "}

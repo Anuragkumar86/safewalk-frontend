@@ -9,12 +9,13 @@ import toast from "react-hot-toast";
 import { Capacitor } from "@capacitor/core";
 import { Geolocation } from "@capacitor/geolocation";
 // Import your custom hook
-import { useContacts } from "@/hooks/useContact"; 
+import { useContacts } from "@/hooks/useContact";
+import Image from "next/image";
 
 export default function Dashboard() {
   const router = useRouter();
   const { contacts, refreshContacts } = useContacts(); // Get contacts from your hook
-  
+
   const [isWalking, setIsWalking] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
   const [duration, setDuration] = useState(15);
@@ -61,7 +62,7 @@ export default function Dashboard() {
       const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/contacts`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       const currentContacts = res.data.allContacts || [];
 
       if (currentContacts.length === 0) {
@@ -70,13 +71,13 @@ export default function Dashboard() {
         toast((t) => (
           <span className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
-               <UserPlus className="text-rose-600" size={18} />
-               <b className="text-rose-600">Safety Check Required</b>
+              <UserPlus className="text-rose-600" size={18} />
+              <b className="text-rose-600">Safety Check Required</b>
             </div>
             <p className="text-xs text-slate-600">
               You haven't added any emergency contacts yet. You must add at least one to start your walk protection.
             </p>
-            <button 
+            <button
               onClick={() => { toast.dismiss(t.id); router.push("/dashboard/contacts"); }}
               className="bg-rose-600 text-white px-3 py-2 rounded-xl text-xs font-bold shadow-md active:scale-95"
             >
@@ -86,7 +87,7 @@ export default function Dashboard() {
         ), { duration: 6000, id: "no-contacts-warning" });
         return;
       }
-      
+
       // If contacts exist, proceed to GPS initialization
       startWalk();
     } catch (err) {
@@ -165,7 +166,7 @@ export default function Dashboard() {
 
   const markSafe = async () => {
     try {
-      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/walk/mark-safe`, 
+      await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/walk/mark-safe`,
         { sessionId }, { headers: { Authorization: `Bearer ${token}` } }
       );
       stopEverything();
@@ -196,8 +197,13 @@ export default function Dashboard() {
     <div style={{ paddingTop: "calc(env(safe-area-inset-top, 12px) + 68px)" }} className="min-h-screen bg-gradient-to-b from-slate-50 to-white flex flex-col items-center p-4 pb-12">
       {!isWalking ? (
         <div className="w-full max-w-md mt-1 sm:mt-6 bg-white p-6 sm:p-8 rounded-[28px] shadow-xl border border-slate-100 text-center">
-          <div className="mx-auto w-20 h-20 bg-gradient-to-br from-rose-50 to-rose-100 rounded-3xl flex items-center justify-center mb-5">
-            <ShieldCheck className="text-rose-600" size={34} />
+          <div className="mx-auto relative w-20 h-20 bg-gradient-to-br from-rose-50 to-rose-100 rounded-3xl flex items-center justify-center mb-5">
+            <Image
+              src="/logo3.png"
+              alt="SafeWalk Logo"
+              fill
+              className="object-contain group-hover:scale-110 transition-transform rounded-2xl"
+            />
           </div>
           <h2 className="text-2xl font-extrabold text-slate-900 mb-1">SafeWalk</h2>
           <p className="text-slate-500 text-sm mb-6 px-3">Guardians will be alerted if you don't check in.</p>
@@ -217,7 +223,7 @@ export default function Dashboard() {
             <div className="mt-4 flex items-center justify-center gap-4">
               <button onClick={() => setDuration((d) => clampDuration(d - 1))} className="p-3 rounded-lg bg-white border border-slate-100"><Minus size={16} /></button>
               <div className="text-center w-24">
-                <div className="text-3xl font-extrabold text-slate-900 leading-none">{duration >= 60 ? `${Math.floor(duration/60)}h ${duration%60}m` : `${duration}m`}</div>
+                <div className="text-3xl font-extrabold text-slate-900 leading-none">{duration >= 60 ? `${Math.floor(duration / 60)}h ${duration % 60}m` : `${duration}m`}</div>
                 <div className="text-xs text-slate-400">Total time</div>
               </div>
               <button onClick={() => setDuration((d) => clampDuration(d + 1))} className="p-3 rounded-lg bg-white border border-slate-100"><Plus size={16} /></button>
