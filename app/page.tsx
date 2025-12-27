@@ -4,6 +4,10 @@ import Link from "next/link";
 import { Shield, MapPin, Bell, ChevronRight, Lock } from "lucide-react";
 
 export default function LandingPage() {
+
+ 
+
+  // toast.error("This is Error message");
   return (
     <div
       className="min-h-screen bg-gradient-to-b from-rose-50 via-slate-50 to-white text-slate-900"

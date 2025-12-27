@@ -32,7 +32,6 @@ export default function Dashboard() {
 
   const MIN_MINUTES = 1;
   const MAX_MINUTES = 300;
-
   useEffect(() => {
     const savedToken = localStorage.getItem("token");
     const savedUser = localStorage.getItem("user");
@@ -206,7 +205,7 @@ export default function Dashboard() {
             />
           </div>
           <h2 className="text-2xl font-extrabold text-slate-900 mb-1">SafeWalk</h2>
-          <p className="text-slate-500 text-sm mb-6 px-3">Guardians will be alerted if you don't check in.</p>
+          <p className="text-slate-500 text-sm mb-6 px-3">Guardians will be alerted if you don't click safe button before timer end.</p>
 
           <div className="bg-slate-50 rounded-2xl p-4 mb-6">
             <div className="flex items-center justify-between mb-3 px-1 text-[11px] font-bold uppercase text-slate-400">
@@ -228,6 +227,7 @@ export default function Dashboard() {
               </div>
               <button onClick={() => setDuration((d) => clampDuration(d + 1))} className="p-3 rounded-lg bg-white border border-slate-100"><Plus size={16} /></button>
             </div>
+            <p className="py-3 text-gray-400">Please select the estimated time by which you expect to reach your destination safely.</p>
           </div>
 
           <button
