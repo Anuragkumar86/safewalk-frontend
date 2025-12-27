@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build:web": "next build",
+    "build:android": "NEXT_PUBLIC_BUILD_TARGET=export next build",
     "start": "next start",
     "lint": "eslint"
   },
