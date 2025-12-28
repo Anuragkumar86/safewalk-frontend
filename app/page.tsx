@@ -1,193 +1,246 @@
-
-import React from "react";
+"use client"
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { Shield, MapPin, Bell, ChevronRight, Lock } from "lucide-react";
+import { Shield, MapPin, Bell, ChevronRight, Lock, ArrowRight } from "lucide-react";
+import { Capacitor } from "@capacitor/core";
+import { App } from "@capacitor/app";
+import { usePathname } from "next/navigation";
 
 export default function LandingPage() {
+  const [user, setUser] = useState<any>(null);
+  const pathname = usePathname();
 
- 
+  useEffect(() => {
+    if (!Capacitor.isNativePlatform()) return;
 
-  // toast.error("This is Error message");
+    const backHandler = App.addListener('backButton', () => {
+      App.exitApp();
+    });
+
+    return () => {
+      backHandler.then(h => h.remove());
+    };
+  }, []);
+
+  useEffect(() => {
+    const savedUser = localStorage.getItem("user");
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
+  }, [pathname]);
+
+  const isLoggedIn = !!user;
+
   return (
+    /* Updated to deep Zinc-950 for a modern dark feel. 
+       Used a subtle radial gradient to prevent the background from feeling "flat".
+    */
     <div
-      className="min-h-screen bg-gradient-to-b from-rose-50 via-slate-50 to-white text-slate-900"
-      // Make sure your global CSS / layout sets --nav-height to your navbar height if it's fixed.
-      // e.g. :root { --nav-height: 72px; } or set it on the layout wrapper.
+      className="min-h-screen bg-zinc-950 text-zinc-100 selection:bg-rose-500/30 overflow-x-hidden"
       style={{ paddingTop: "var(--nav-height, 64px)" }}
     >
-      {/* HERO */}
-      <header className="relative overflow-hidden pb-12">
-        <div className="container mx-auto px-6">
-          {/* <nav className="flex items-center justify-between py-4">
-            <div className="flex items-center gap-3">
-              <div className="relative w-10 h-10 rounded-xl overflow-hidden bg-white shadow-sm flex items-center justify-center">
-                <Image src="/logo3.png" alt="SafeWalk Logo" width={40} height={40} />
-              </div>
-              <span className="text-xl sm:text-2xl font-extrabold tracking-tight">SafeWalk</span>
-            </div>
-            
-          </nav> */}
+      {/* BACKGROUND DECORATION - Purely visual subtle glows */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-rose-900/10 blur-[120px] rounded-full" />
+        <div className="absolute top-[20%] -right-[10%] w-[30%] h-[30%] bg-blue-900/10 blur-[120px] rounded-full" />
+      </div>
 
-          <main className="mt-6 grid grid-cols-1 md:grid-cols-12 gap-8 items-center">
-            {/* left - text */}
-            <div className="md:col-span-7">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight mb-4">
+      {/* HERO SECTION */}
+      <header className="relative pt-8 pb-16 md:pt-16 md:pb-24">
+        <div className="container mx-auto px-6 relative z-10">
+          <main className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+            
+            {/* Left Column: Typography & CTAs */}
+            <div className="lg:col-span-7 flex flex-col items-start">
+              {/* Badge for mobile-first appeal */}
+              {/* <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-medium mb-6 animate-fade-in">
+                <Shield size={14} />
+                <span>Trusted by over 10k users</span>
+              </div> */}
+
+              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1] mb-6">
                 Walk with{" "}
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-rose-600 to-rose-400">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-400 via-rose-500 to-orange-400">
                   confidence
                 </span>
                 .
               </h1>
 
-              <p className="text-slate-600 mb-6 text-sm sm:text-base max-w-xl leading-relaxed">
-                Real-time safety monitoring, instant alerts, and trusted contacts — all in a simple, mobile-first experience.
-                SafeWalk keeps loved ones informed so you never have to walk alone.
+              <p className="text-zinc-400 mb-10 text-base sm:text-lg max-w-xl leading-relaxed">
+                Real-time safety monitoring, instant alerts, and trusted contacts. 
+                Keep your loved ones informed and never walk alone again.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+              <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
                 <Link
                   href="/dashboard"
-                  className="inline-flex items-center justify-center gap-2 bg-rose-600 text-white px-5 py-3 rounded-2xl font-bold text-sm sm:text-base hover:bg-rose-700 transition shadow-lg active:scale-95"
-                  aria-label="Begin your journey"
+                  className="group relative inline-flex items-center justify-center gap-2 bg-rose-600 text-white px-8 py-4 rounded-2xl font-bold text-base hover:bg-rose-500 transition-all duration-300 shadow-xl shadow-rose-900/20 active:scale-[0.98]"
                 >
-                  Begin Your Journey
-                  <ChevronRight size={18} />
+                  Start your Walk
+                  <ChevronRight size={18} className="group-hover:translate-x-1 transition-transform" />
                 </Link>
 
                 <Link
                   href="#features"
-                  className="inline-flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-900 px-5 py-3 rounded-2xl font-semibold text-sm sm:text-base hover:shadow-sm transition"
-                  aria-label="Learn more about features"
+                  className="inline-flex items-center justify-center gap-2 bg-zinc-900 border border-zinc-800 text-zinc-300 px-8 py-4 rounded-2xl font-semibold text-base hover:bg-zinc-800 hover:text-white transition-all active:scale-[0.98]"
                 >
                   Learn More
                 </Link>
               </div>
 
-              <div className="mt-6 flex items-center gap-4 text-sm text-slate-500">
-                <Shield className="text-rose-600" size={18} />
-                <span>Private location sharing · Trusted contacts · One-tap emergency</span>
+              <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-3 text-xs sm:text-sm text-zinc-500 border-t border-zinc-800/50 pt-8 w-full">
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                  <span>Private location sharing</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                  <span>Trusted circles</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                  <span>One-tap SOS</span>
+                </div>
               </div>
             </div>
 
-            {/* right - hero card (mobile-first: stacked below, on md appears right) */}
-            <div className="md:col-span-5">
-              <div className="relative bg-white/70 backdrop-blur-sm rounded-3xl p-4 sm:p-6 shadow-lg border border-transparent hover:border-rose-100 transition">
-                <div className="flex items-center justify-between gap-4">
-                  <div>
-                    <div className="text-xs text-rose-600 font-semibold uppercase mb-1">On Your Phone</div>
-                    <h3 className="text-lg font-bold text-slate-900">Live tracking & instant alerts</h3>
-                    <p className="text-sm text-slate-600 mt-2">Share live location, start a timer, or trigger an emergency ping instantly.</p>
-                  </div>
-
-                  <div className="hidden sm:block w-20 h-20 rounded-2xl bg-gradient-to-br from-rose-500 to-rose-300 flex items-center justify-center text-white shadow-md">
-                    <MapPin size={28} />
-                  </div>
+            {/* Right Column: Hero Feature Card */}
+            <div className="lg:col-span-5 relative">
+              {/* Glassmorphic card design */}
+              <div className="relative z-20 bg-zinc-900/50 backdrop-blur-xl rounded-[2.5rem] p-6 sm:p-8 border border-zinc-800 shadow-2xl overflow-hidden group">
+                <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-40 transition-opacity">
+                   <MapPin size={120} className="text-rose-500 -mr-10 -mt-10" />
                 </div>
 
-                <div className="mt-4 grid grid-cols-3 gap-2">
-                  <div className="bg-slate-50 rounded-lg p-2 text-center text-xs">
-                    <div className="font-semibold text-slate-900">Live</div>
-                    <div className="text-slate-500">Track</div>
+                <div className="relative z-10">
+                  <div className="w-12 h-12 rounded-2xl bg-rose-500/20 flex items-center justify-center text-rose-500 mb-6">
+                    <Bell size={24} />
                   </div>
-                  <div className="bg-slate-50 rounded-lg p-2 text-center text-xs">
-                    <div className="font-semibold text-slate-900">Alert</div>
-                    <div className="text-slate-500">1 Tap</div>
-                  </div>
-                  <div className="bg-slate-50 rounded-lg p-2 text-center text-xs">
-                    <div className="font-semibold text-slate-900">Private</div>
-                    <div className="text-slate-500">Encrypted</div>
-                  </div>
-                </div>
+                  <h3 className="text-xl font-bold text-white mb-3">Live tracking & instant alerts</h3>
+                  <p className="text-zinc-400 text-sm leading-relaxed mb-8">
+                    Share live location, start a timer, or trigger an emergency ping instantly with a single gesture.
+                  </p>
 
-                <div className="mt-4 flex gap-3">
-                  <Link
-                    href="/coming-soon"
-                    className="flex-1 inline-flex items-center justify-center gap-2 bg-rose-50 text-rose-700 px-3 py-2 rounded-xl font-semibold text-sm hover:bg-rose-100 transition"
-                  >
-                    Get the app
-                  </Link>
-                  <Link
-                    href="#features"
-                    className="flex-1 inline-flex items-center justify-center gap-2 bg-white border border-slate-200 px-3 py-2 rounded-xl text-sm hover:bg-slate-50 transition"
-                  >
-                    How it works
-                  </Link>
+                  <div className="grid grid-cols-3 gap-3 mb-8">
+                    {['Live', 'Alert', 'Private'].map((label, i) => (
+                      <div key={label} className="bg-zinc-950/50 border border-zinc-800/50 rounded-2xl p-3 text-center">
+                        <div className="text-rose-400 font-bold text-sm mb-0.5">{label}</div>
+                        <div className="text-[10px] uppercase tracking-wider text-zinc-500 font-semibold">
+                          {i === 0 ? 'Track' : i === 1 ? '1 Tap' : 'Encrypted'}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex flex-col gap-3">
+                    <Link
+                      href="/coming-soon"
+                      className="w-full flex items-center justify-between bg-white text-zinc-950 px-6 py-4 rounded-2xl font-bold text-sm hover:bg-zinc-200 transition-colors"
+                    >
+                      Download Mobile App
+                      <ArrowRight size={18} />
+                    </Link>
+                  </div>
                 </div>
               </div>
 
-              {/* subtle decoration behind the card for visual depth */}
-              <div className="mt-4 hidden md:block relative">
-                <div className="absolute -left-8 -top-6 w-40 h-40 bg-rose-100 rounded-full filter blur-3xl opacity-60" />
-                <div className="absolute -right-6 -bottom-8 w-28 h-28 bg-rose-200 rounded-full filter blur-2xl opacity-40" />
-              </div>
+              {/* Decorative rings */}
+              <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] border border-rose-500/5 rounded-full pointer-events-none" />
+              <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[140%] border border-zinc-800/20 rounded-full pointer-events-none" />
             </div>
           </main>
         </div>
       </header>
 
-      {/* FEATURES */}
-      <section id="features" className="py-12 sm:py-16">
+      {/* FEATURES SECTION */}
+      <section id="features" className="py-20 relative bg-zinc-900/30">
         <div className="container mx-auto px-6">
-          <div className="text-center max-w-2xl mx-auto mb-8">
-            <h2 className="text-2xl sm:text-3xl font-extrabold mb-2">How SafeWalk Protects You</h2>
-            <p className="text-slate-500">Advanced safety tools built into a simple, mobile-first interface.</p>
+          <div className="text-center max-w-2xl mx-auto mb-16">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-white">Advanced Safety Engineering</h2>
+            <p className="text-zinc-400 text-lg">Sophisticated protection simplified for your daily peace of mind.</p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
             <FeatureCard
               icon={<MapPin />}
-              title="Live Tracking"
-              description="Share your live location with trusted contacts until you arrive home safely."
-              color="from-rose-600 to-rose-400"
+              title="Real-time Telemetry"
+              description="High-precision location sharing with active path monitoring and ETA updates."
+              color="rose"
             />
             <FeatureCard
               icon={<Bell />}
-              title="Instant Alerts"
-              description="One tap sends your location and an emergency signal to your entire circle."
-              color="from-amber-500 to-amber-400"
+              title="Smart SOS Response"
+              description="Distress signals distributed across your network with automated local emergency routing."
+              color="orange"
             />
             <FeatureCard
               icon={<Lock />}
-              title="Data Privacy"
-              description="Your location data is private and only visible to the people you choose."
-              color="from-sky-500 to-sky-400"
+              title="Military-Grade Privacy"
+              description="Zero-knowledge encryption ensures only your chosen circle can ever see your path."
+              color="blue"
             />
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-10 sm:py-16">
+      {/* CTA SECTION */}
+      <section className="py-20">
         <div className="container mx-auto px-6">
-          <div className="rounded-3xl bg-gradient-to-r from-slate-900 to-rose-700 p-6 sm:p-12 text-white relative overflow-hidden shadow-2xl">
-            <div className="relative z-10 text-center">
-              <h3 className="text-xl sm:text-3xl font-extrabold mb-3">Ready to prioritize your safety?</h3>
-              <p className="text-slate-200 max-w-2xl mx-auto mb-6">Join thousands of users who trust SafeWalk for their daily commutes and nighttime travels.</p>
-              <div className="flex justify-center gap-3">
-                <Link
-                  href="/register"
-                  className="inline-flex items-center gap-2 bg-white text-slate-900 px-5 py-3 rounded-2xl font-bold hover:bg-rose-50 transition"
-                >
-                  Create Free Account
-                </Link>
-                {/* <Link
-                  href="/contact"
-                  className="inline-flex items-center gap-2 bg-white/10 border border-white/20 px-5 py-3 rounded-2xl text-white hover:bg-white/20 transition"
-                >
-                  Contact Sales
-                </Link> */}
+          <div className="relative rounded-[3rem] bg-gradient-to-br from-zinc-900 via-zinc-900 to-rose-950/40 p-8 md:p-16 border border-zinc-800 overflow-hidden group">
+            {/* Background pattern */}
+            <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
+            
+            <div className="relative z-10 flex flex-col items-center text-center">
+              <h3 className="text-3xl sm:text-5xl font-bold mb-6 text-white tracking-tight">
+                Prioritize your safety today.
+              </h3>
+              <p className="text-zinc-400 max-w-xl text-lg mb-10 leading-relaxed">
+                Join the network of users who have transformed their commute into a secure, monitored experience.
+              </p>
+              
+              <div className="flex justify-center w-full">
+                {isLoggedIn ? (
+                  <Link
+                    href="/dashboard"
+                    className="inline-flex items-center gap-3 bg-white text-zinc-950 px-10 py-5 rounded-2xl font-bold text-lg hover:bg-zinc-200 transition-transform active:scale-95 shadow-xl"
+                  >
+                    Start your Walk
+                    <ChevronRight size={20} />
+                  </Link>
+                ) : (
+                  <Link
+                    href="/register"
+                    className="inline-flex items-center gap-3 bg-rose-600 text-white px-10 py-5 rounded-2xl font-bold text-lg hover:bg-rose-500 transition-transform active:scale-95 shadow-xl shadow-rose-900/20"
+                  >
+                    Create Free Account
+                    <ChevronRight size={20} />
+                  </Link>
+                )}
               </div>
             </div>
 
-            <div className="absolute -right-16 -bottom-10 w-80 h-80 rounded-full bg-rose-500 opacity-20 filter blur-3xl" />
+            {/* Decorative glow */}
+            <div className="absolute -right-20 -bottom-20 w-96 h-96 rounded-full bg-rose-600/10 filter blur-[100px]" />
           </div>
         </div>
       </section>
 
       {/* FOOTER */}
-      <footer className="py-8 border-t border-slate-100">
-        <div className="container mx-auto px-6 text-center">
-          <p className="text-sm text-slate-500 font-medium">© 2025 SafeWalk Technologies. Your safety, our mission.</p>
+      <footer className="py-12 border-t border-zinc-900 bg-zinc-950">
+        <div className="container mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="flex items-center gap-2 font-bold text-xl text-white">
+            <div className="w-8 h-8 rounded-lg bg-rose-600 flex items-center justify-center">
+              <Shield size={18} />
+            </div>
+            SafeWalk
+          </div>
+          <p className="text-sm text-zinc-500 font-medium">
+            © 2025 SafeWalk Technologies. All rights reserved.
+          </p>
+          <div className="flex gap-6 text-sm text-zinc-400">
+            <Link href="#" className="hover:text-rose-400 transition-colors">Privacy</Link>
+            <Link href="#" className="hover:text-rose-400 transition-colors">Terms</Link>
+          </div>
         </div>
       </footer>
     </div>
@@ -198,27 +251,27 @@ function FeatureCard({
   icon,
   title,
   description,
-  color = "from-rose-600 to-rose-400",
+  color,
 }: {
   icon: React.ReactNode;
   title: string;
   description: string;
-  color?: string;
+  color: 'rose' | 'orange' | 'blue';
 }) {
-  // color is a gradient tailwind fragment like "from-rose-600 to-rose-400"
-  return (
-    <article className="p-5 rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition transform hover:-translate-y-1">
-      <div className="flex items-start gap-4">
-        <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white shadow-md bg-gradient-to-br ${color}`}>
-          {/* clone icon with white color */}
-          <div className="text-white">{React.cloneElement(icon as any, { size: 20, className: "text-white" })}</div>
-        </div>
+  const colorMap = {
+    rose: "bg-rose-500/10 text-rose-500 border-rose-500/20",
+    orange: "bg-orange-500/10 text-orange-500 border-orange-500/20",
+    blue: "bg-blue-500/10 text-blue-500 border-blue-500/20"
+  };
 
-        <div>
-          <h4 className="font-semibold text-slate-900">{title}</h4>
-          <p className="text-sm text-slate-600 mt-1">{description}</p>
-        </div>
+  return (
+    <article className="group p-8 rounded-[2rem] bg-zinc-900/40 border border-zinc-800 hover:border-zinc-700 transition-all duration-300 hover:translate-y-[-4px]">
+      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border mb-8 transition-transform group-hover:scale-110 duration-500 ${colorMap[color]}`}>
+        {React.cloneElement(icon as any, { size: 28 })}
       </div>
+
+      <h4 className="text-xl font-bold text-white mb-3 tracking-tight">{title}</h4>
+      <p className="text-zinc-400 text-sm leading-relaxed leading-relaxed">{description}</p>
     </article>
   );
 }
