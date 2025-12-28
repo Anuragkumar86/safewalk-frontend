@@ -9,6 +9,8 @@ import { usePathname } from "next/navigation";
 export default function LandingPage() {
   const [user, setUser] = useState<any>(null);
   const pathname = usePathname();
+  const [downloads, setDownloads] = useState<number | null>(null);
+
 
   useEffect(() => {
     if (!Capacitor.isNativePlatform()) return;
@@ -31,6 +33,29 @@ export default function LandingPage() {
 
   const isLoggedIn = !!user;
 
+
+  useEffect(() => {
+    fetch("https://api.github.com/repos/Anuragkumar86/safewalk-frontend/releases")
+      .then(res => res.json())
+      .then(data => {
+        if (!Array.isArray(data) || data.length === 0) return;
+
+        const latestRelease = data[0];
+        const apkAsset = latestRelease.assets.find(
+          (asset: any) => asset.name.endsWith(".apk")
+        );
+
+
+        if (apkAsset) {
+          setDownloads(apkAsset.download_count);
+        }
+      })
+      .catch(err => {
+        console.error("Failed to fetch download count", err);
+      });
+  }, []);
+
+
   return (
     /* Updated to deep Zinc-950 for a modern dark feel. 
        Used a subtle radial gradient to prevent the background from feeling "flat".
@@ -49,14 +74,9 @@ export default function LandingPage() {
       <header className="relative pt-8 pb-16 md:pt-16 md:pb-24">
         <div className="container mx-auto px-6 relative z-10">
           <main className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-            
+
             {/* Left Column: Typography & CTAs */}
             <div className="lg:col-span-7 flex flex-col items-start">
-              {/* Badge for mobile-first appeal */}
-              {/* <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 border border-rose-500/20 text-rose-400 text-xs font-medium mb-6 animate-fade-in">
-                <Shield size={14} />
-                <span>Trusted by over 10k users</span>
-              </div> */}
 
               <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight leading-[1.1] mb-6">
                 Walk with{" "}
@@ -67,7 +87,7 @@ export default function LandingPage() {
               </h1>
 
               <p className="text-zinc-400 mb-10 text-base sm:text-lg max-w-xl leading-relaxed">
-                Real-time safety monitoring, instant alerts, and trusted contacts. 
+                Real-time safety monitoring, instant alerts, and trusted contacts.
                 Keep your loved ones informed and never walk alone again.
               </p>
 
@@ -109,7 +129,7 @@ export default function LandingPage() {
               {/* Glassmorphic card design */}
               <div className="relative z-20 bg-zinc-900/50 backdrop-blur-xl rounded-[2.5rem] p-6 sm:p-8 border border-zinc-800 shadow-2xl overflow-hidden group">
                 <div className="absolute top-0 right-0 p-4 opacity-20 group-hover:opacity-40 transition-opacity">
-                   <MapPin size={120} className="text-rose-500 -mr-10 -mt-10" />
+                  <MapPin size={120} className="text-rose-500 -mr-10 -mt-10" />
                 </div>
 
                 <div className="relative z-10">
@@ -133,13 +153,24 @@ export default function LandingPage() {
                   </div>
 
                   <div className="flex flex-col gap-3">
-                    <Link
-                      href="/coming-soon"
+                    <a
+                      href="https://github.com/Anuragkumar86/safewalk-frontend/releases/latest/download/SafeWalk.apk"
                       className="w-full flex items-center justify-between bg-white text-zinc-950 px-6 py-4 rounded-2xl font-bold text-sm hover:bg-zinc-200 transition-colors"
                     >
                       Download Mobile App
                       <ArrowRight size={18} />
-                    </Link>
+                    </a>
+
+                    <p className="mt-3 text-center text-sm text-zinc-200">
+                      ⬇️ Downloaded by{" "}
+                      <span className="font-bold text-green-600">
+                        {downloads === null ? "…" : downloads}
+                      </span>{" "}
+                      users
+                    </p>
+
+
+
                   </div>
                 </div>
               </div>
@@ -189,7 +220,7 @@ export default function LandingPage() {
           <div className="relative rounded-[3rem] bg-gradient-to-br from-zinc-900 via-zinc-900 to-rose-950/40 p-8 md:p-16 border border-zinc-800 overflow-hidden group">
             {/* Background pattern */}
             <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
-            
+
             <div className="relative z-10 flex flex-col items-center text-center">
               <h3 className="text-3xl sm:text-5xl font-bold mb-6 text-white tracking-tight">
                 Prioritize your safety today.
@@ -197,7 +228,7 @@ export default function LandingPage() {
               <p className="text-zinc-400 max-w-xl text-lg mb-10 leading-relaxed">
                 Join the network of users who have transformed their commute into a secure, monitored experience.
               </p>
-              
+
               <div className="flex justify-center w-full">
                 {isLoggedIn ? (
                   <Link

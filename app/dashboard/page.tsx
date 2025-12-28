@@ -15,6 +15,10 @@ import { App } from "@capacitor/app";
 import { LocalNotifications } from "@capacitor/local-notifications";
 
 
+const APP_VERSION = "1.0.0";
+const VERSION_CHECK_URL = "https://gist.githubusercontent.com/Anuragkumar86/11b55a9f37517db72e2bbd6703141ddc/raw/6fea88a27a989f6e23bdfc2a2ae8b2261a5adab6/version.json";
+
+
 export default function Dashboard() {
   const router = useRouter();
   const { contacts, refreshContacts } = useContacts(); // Get contacts from your hook
@@ -32,6 +36,8 @@ export default function Dashboard() {
 
   const socketRef = useRef<Socket | null>(null);
   const watchIdRef = useRef<string | number | null>(null);
+
+  const [updateData, setUpdateData] = useState<{ version: string, url: string, notes: string } | null>(null);
 
   const MIN_MINUTES = 1;
   const MAX_MINUTES = 300;
@@ -79,6 +85,7 @@ export default function Dashboard() {
         setIsAlertSent(true);
       }
     }
+    checkForUpdates();
     socketRef.current = io(process.env.NEXT_PUBLIC_SOCKET_URL || "http://localhost:5000");
     return () => {
       socketRef.current?.disconnect();
@@ -101,6 +108,20 @@ export default function Dashboard() {
       backHandler.then((h) => h.remove());
     };
   }, [isWalking, router]);
+
+
+
+  const checkForUpdates = async () => {
+    try {
+      if (isWalking) return;
+      const response = await axios.get(VERSION_CHECK_URL);
+      if (response.data.version !== APP_VERSION) {
+        setUpdateData(response.data);
+      }
+    } catch (error) {
+      console.error("Failed to check for updates");
+    }
+  };
 
   // --- LOGIC 1: CHECK EMERGENCY CONTACTS ---
   const checkContactsAndStart = async () => {
@@ -249,14 +270,14 @@ export default function Dashboard() {
       }
 
 
-      
+
       const endTime = Date.now() + duration * 60 * 1000;
       localStorage.setItem("safewalk_session_id", res.data.sessionId);
       localStorage.setItem("safewalk_end_time", endTime.toString());
       localStorage.setItem("safewalk_active", "true");
-      
+
       await scheduleReminders(duration);
-      
+
       setSessionId(res.data.sessionId);
       setCurrentAccuracy(acc);
       setIsWalking(true);
@@ -510,6 +531,23 @@ export default function Dashboard() {
             {isAlertSent ? "The alert was already sent. Your journey history will reflect this." : "Click only when you reach your destination."}
           </p>
 
+        </div>
+      )}
+      {updateData && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+          <div className="bg-slate-800 p-6 rounded-3xl max-w-sm w-full border border-emerald-500/50">
+            <h3 className="text-xl font-bold text-white mb-2">Update Available!</h3>
+            <p className="text-slate-300 text-sm mb-4">A new version (v{updateData.version}) is ready for download.</p>
+            <div className="flex gap-4">
+              <button onClick={() => setUpdateData(null)} className="flex-1 text-slate-400">Later</button>
+              <button
+                onClick={() => window.open(updateData.url, '_system')}
+                className="flex-1 bg-emerald-500 py-2 rounded-xl text-black font-bold"
+              >
+                Update
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
