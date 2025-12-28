@@ -40,7 +40,8 @@ SafeWalk is a **private safety tool** and is not hosted on the Play Store to kee
 ### 📥 Installation Steps (Android)
 
 1. **Download the APK**  
-   👉 [Click here to download the latest version](#)
+   👉 [Click here to download the latest version](https://github.com/Anuragkumar86/safewalk-frontend/releases/latest/download/SafeWalk.apk
+   )
 
 2. **Open the file**  
    Tap the `.apk` file from your notifications or downloads folder.
@@ -175,7 +176,7 @@ Planned future improvements:
 
 We welcome feedback and contributions!
 
-- 🐞 [Open an Issue](#)
+- 🐞 Open an Issue
 - 💡 Feature suggestions are welcome
 - 🔄 Always keep the app updated
 
