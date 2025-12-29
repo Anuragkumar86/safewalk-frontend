@@ -484,7 +484,7 @@ export default function Dashboard() {
         </div>
       ) : (
         <div
-          className={`w-full max-w-md p-6 mt-50 rounded-3xl shadow-2xl flex flex-col items-center overflow-hidden transition-colors duration-500 ${isAlertSent ? "bg-rose-700 text-white" : "bg-gradient-to-br from-slate-900 to-slate-800 text-white"
+          className={`w-full max-w-md p-6 mt-35 rounded-3xl shadow-2xl flex flex-col items-center overflow-hidden transition-colors duration-500 ${isAlertSent ? "bg-rose-700 text-white" : "bg-gradient-to-br from-slate-900 to-slate-800 text-white"
             }`}
         >
           <div className="flex w-full justify-between items-center mb-6">

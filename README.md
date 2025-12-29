@@ -121,11 +121,11 @@ If you fail to check in:
 
 ## 🖼️ App Screenshots
 
-| Dashboard | Tracking | Emergency |
-|---------|----------|-----------|
-| ![Dashboard](screenshots/dashboard.png) | ![Tracking](screenshots/tracking.png) | ![Emergency](screenshots/emergency.png) |
+| Dashboard | Homepage | Emergency | Contact | Live
+|---------|----------|-----------|-----------|-----------|
+| ![Dashboard](public/screenshots/dashboard.jpeg) | ![Homepage](public/screenshots/homepage.jpeg) | ![Emergency](public/screenshots/emergency.jpeg) |   ![Contact](public/screenshots/contact.jpeg) |  ![Live](public/screenshots/live.jpeg)
 
-> 📌 *(Replace images with real screenshots when ready)*
+> 
 
 ---
 
