@@ -101,12 +101,12 @@ function TrackerContent() {
               >
                 <ExternalLink size={18} /> Directions
               </a>
-              <button 
+              {/* <button 
                 onClick={() => window.open('tel:911')}
                 className="flex items-center justify-center gap-2 bg-slate-900 text-white py-4 rounded-2xl font-bold text-sm shadow-md active:scale-95 transition-transform"
               >
                 <Phone size={18} /> Call Police
-              </button>
+              </button> */}
            </div>
         </div>
       </div>
