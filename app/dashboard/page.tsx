@@ -15,7 +15,7 @@ import { App } from "@capacitor/app";
 import { LocalNotifications } from "@capacitor/local-notifications";
 
 
-const APP_VERSION = "1.1.0";
+const APP_VERSION = "1.1.1";
 const VERSION_CHECK_URL = "https://gist.githubusercontent.com/Anuragkumar86/11b55a9f37517db72e2bbd6703141ddc/raw/version.json";
 
 
