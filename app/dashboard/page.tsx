@@ -15,9 +15,11 @@ import { App } from "@capacitor/app";
 import { LocalNotifications } from "@capacitor/local-notifications";
 
 
-const APP_VERSION = "1.0.0";
+const APP_VERSION = "1.1.0";
 const VERSION_CHECK_URL = "https://gist.githubusercontent.com/Anuragkumar86/11b55a9f37517db72e2bbd6703141ddc/raw/version.json";
 
+
+const IGNORED_VERSION_KEY = "ignored_app_version";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -114,14 +116,25 @@ export default function Dashboard() {
   const checkForUpdates = async () => {
     try {
       if (isWalking) return;
+
       const response = await axios.get(VERSION_CHECK_URL);
-      if (response.data.version !== APP_VERSION) {
-        setUpdateData(response.data);
+      const newVersion = response.data.version;
+
+      // 1. Check if version is different
+      if (newVersion !== APP_VERSION) {
+
+        // 2. Check if the user ALREADY clicked update for this specific version
+        const dismissedVersion = localStorage.getItem("dismissed_update_version");
+
+        if (dismissedVersion !== newVersion) {
+          setUpdateData(response.data);
+        }
       }
     } catch (error) {
       console.error("Failed to check for updates");
     }
   };
+
 
   // --- LOGIC 1: CHECK EMERGENCY CONTACTS ---
   const checkContactsAndStart = async () => {
@@ -539,9 +552,16 @@ export default function Dashboard() {
             <h3 className="text-xl font-bold text-white mb-2">Update Available!</h3>
             <p className="text-slate-300 text-sm mb-4">A new version (v{updateData.version}) is ready for download.</p>
             <div className="flex gap-4">
+              {/* If they click Later, we just close it for now (it will reappear next time they open the app) */}
               <button onClick={() => setUpdateData(null)} className="flex-1 text-slate-400">Later</button>
+
               <button
-                onClick={() => window.open(updateData.url, '_system')}
+                onClick={() => {
+                  // SAVE THE VERSION to localStorage so the popup stops appearing for this version
+                  localStorage.setItem("dismissed_update_version", updateData.version);
+                  setUpdateData(null);
+                  window.open(updateData.url, '_system');
+                }}
                 className="flex-1 bg-emerald-500 py-2 rounded-xl text-black font-bold"
               >
                 Update
